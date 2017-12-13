@@ -1,0 +1,17 @@
+---
+# tasks file for drbd-node
+
+- name: Install drbd8
+  apt:
+    name: drbd8-utils
+    state: present
+  update_cache: yes
+
+- name: Install drbd conf file
+  template:
+    src: drbd.conf.j2
+    dest: /etc/drbd.conf
+
+- name: Initialize drbd
+  command: drbdadm create-md r0
+  notify: start drbd

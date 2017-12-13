@@ -1,0 +1,6 @@
+---
+# handlers file for drbd-node
+- name: start drbd
+  service:
+    name: drbd
+    state: restarted

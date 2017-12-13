@@ -1,0 +1,36 @@
+---
+- hosts: all
+  gather_facts: no
+  pre_tasks:
+    - name: install python 2 on Ubuntu
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+
+    - name: Install drbd module
+      apt:
+        name: linux-image-extra-virtual
+        state: present
+      register: kernel_update
+
+    - name: Reboot
+      shell: sleep 2s && reboot
+      when: kernel_update.changed
+      async: 1
+      poll: 0
+      ignore_errors: true
+      register: reboot
+
+    - name: wait for the server to restart
+      local_action:
+          module: wait_for
+          host: '{{ primary_node_ip }}'
+          port: 22
+          delay: 10
+          timeout: 300
+          state: started
+      become: no
+      when: reboot.changed
+
+
+- hosts: drbd-nodes
+  roles:
+    - drbd-common
